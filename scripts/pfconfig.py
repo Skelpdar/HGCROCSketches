@@ -3,7 +3,7 @@
 Open the config, list the commands you want to use, then run it.
 
     import pfconfig
-    with pfconfig.connect() as c :
+    with pfconfig.open() as c :
         c.set_general()
         c.run()
 
@@ -12,7 +12,7 @@ Open the config, list the commands you want to use, then run it.
 import tempfile
 import subprocess
 
-class PFConfig(tempfile.NamedTemporaryFile):
+class PFConfig :
     """PFConfig class which is a special tyep of temporary file
     
     Examples
@@ -24,33 +24,42 @@ class PFConfig(tempfile.NamedTemporaryFile):
             c.set_general()
             c.run()
 
-    Even better, use simpler connect function:
+    Even better, use simpler open function:
         
         import pfconfig
-        with pfconfig.connect() as c :
+        with pfconfig.open() as c :
             c.set_general()
             c.run()
 
     """
 
     def __init__(self) :
-        super().__init__(mode='w+')
+        self._file = tempfile.NamedTemporaryFile(mode='w+')
         self.pflibpath = 'pftool'
 
+    def __enter__(self) :
+        return self
+
+    def __exit__(self,exc_type, exc_value, exc_traceback) :
+        self._file.__exit__(exc_type, exc_value, exc_traceback)
+
+    def __str__(self) :
+        with open(self._file.name,'r') as r :
+            return r.read()
+
     def run(self,run=False):
-        subprocess.run(f'{self.pflibpath} -s {self.name}',shell=True,check=True)
+        if run :
+            subprocess.run(f'{self.pflibpath} -s {self._file.name}',shell=True,check=True)
+        else :
+            print(str(self))
 
     def cmd(self,cmds) :
         if isinstance(cmds,list):
             for c in cmds :
-                self.write(f'{c}\n')
+                self._file.write(f'{c}\n')
         else:
-            self.write(f'{c}\n')
-        self.flush()
-
-    def __str__(self) :
-        with open(self.name,'r') as r :
-            return r.read()
+            self._file.write(f'{cmds}\n')
+        self._file.flush()
 
     def fc_reset(self):
         self.cmd(["FAST_CONTROL","FC_RESET","QUIT"])
@@ -77,7 +86,7 @@ class PFConfig(tempfile.NamedTemporaryFile):
 
     def roc_loadparam(self,config):
         self.cmd("ROC") # ROC Configuration
-        for iroc in rocs: # IROC: Which ROC to manage?
+        for iroc in [0] : #rocs: # IROC: Which ROC to manage?
             self.cmd(["IROC",iroc,"LOAD_PARAM",config])
             self.cmd("N") # Update all parameter values on the chip using the defaults in the manual for any values not provided?
         self.cmd("QUIT")
@@ -117,7 +126,7 @@ class PFConfig(tempfile.NamedTemporaryFile):
         self.cmd(["DAQ","PEDESTAL","QUIT"])
         
     def daq_charge(self,nevents=100,output_name="0.raw"):
-        self.cmd(["DAQ","CHARGE",nevents,output_name,"QUIT")
+        self.cmd(["DAQ","CHARGE",nevents,output_name,"QUIT"])
 
     def daq_enable(self,board):
         self.cmd("DAQ")
@@ -145,5 +154,5 @@ class PFConfig(tempfile.NamedTemporaryFile):
         self.bias_set(board,hdmi,0,sipm_bias)
         self.bias_set(board,hdmi,1,led_bias)
 
-def connect() :
+def open() :
     return PFConfig()
