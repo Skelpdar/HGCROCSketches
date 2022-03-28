@@ -11,13 +11,21 @@ class PFConfig(tempfile.NamedTemporaryFile):
     Create it, write commands, run the pftool.
 
         from pfconfig import PFConfig
-        c = PFConfig()
-        c.set_general()
-        c.run() # will hang if user doesn't exit fully!
+        with PFConfig() as c :
+            c.set_general()
+            c.run()
+
+    Event better, use simpler connect function:
+        
+        import pfconfig
+        with pfconfig.connect() as c :
+            c.set_general()
+            c.run()
 
     """
 
     def __init__(self) :
+        super().__init__(mode='w+')
         self.pflibpath = 'pftool'
 
     def run(self,run=False):
@@ -121,3 +129,6 @@ class PFConfig(tempfile.NamedTemporaryFile):
         self.bias_set(board,hdmi,0,sipm_bias)
         self.bias_set(board,hdmi,1,led_bias)
         
+
+def connect() :
+    return PFConfig()
