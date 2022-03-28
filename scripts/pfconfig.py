@@ -74,6 +74,9 @@ class PFConfig:
 
     def daq_reset(self):
         self.pc.extend(["DAQ","HARD_RESET","QUIT"])
+
+    def daq_pedestal(self):
+        self.pc.extend(["DAQ","PEDESTAL"])
         
     def daq_enable(self,board):
         self.pc.append("DAQ")
@@ -94,12 +97,11 @@ class PFConfig:
         self.daq_enable(board)
         self.elinks_relink()
 
-    def set_charge_injection(self):
-        
-        
+    #def set_charge_injection(self):
+
     def set_led(self,board=0,hdmi=0,sipm_bias=3784,led_bias=2500):
         self.pc = [] # Should we re-start the commands here?
         self.bias_init(board)
         self.bias_set(board,hdmi,0,sipm_bias)
         self.bias_set(board,hdmi,1,led_bias)
-        
+
