@@ -1,0 +1,15 @@
+bias
+init
+0
+set
+0
+0
+0
+3784
+set
+0
+1
+0
+0
+quit
+exit

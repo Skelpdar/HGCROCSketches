@@ -1,0 +1,11 @@
+elinks
+hard_reset
+relink
+quit
+daq
+pedestal
+1
+1.raw
+quit
+exit
+

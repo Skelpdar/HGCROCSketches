@@ -1,0 +1,16 @@
+roc
+POKE_PARAM
+Reference_Voltage_0
+Calib_dac
+0
+POKE_PARAM
+Reference_Voltage_0
+IntCtest
+0
+POKE_PARAM
+Channel_0
+HighRange
+0
+
+quit
+exit
