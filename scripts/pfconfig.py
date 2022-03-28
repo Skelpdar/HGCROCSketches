@@ -1,91 +1,110 @@
-import os
+"""Run a script through pftool"""
 
-class PFConfig:
-    def __init__(self,fname="tmp.txt"):
-        self.pflibpath = '/home/ldmx/pflib/pflib/'
-        self.fname = fname # file name
-        self.pc = [] # pf tool commands
+import tempfile
+import subprocess
+
+class PFConfig(tempfile.NamedTemporaryFile):
+    """PFConfig class which is a special tyep of temporary file
+    
+    Examples
+    --------
+    Create it, write commands, run the pftool.
+
+        from pfconfig import PFConfig
+        c = PFConfig()
+        c.set_general()
+        c.run() # will hang if user doesn't exit fully!
+
+    """
+
+    def __init__(self) :
+        self.pflibpath = 'pftool'
 
     def run(self,run=False):
-        with open(self.fname,"w") as fparam:
-            for command in self.fcommands:
-                fparam.write(f"{command}\n")
-            fparam.write("EXIT\n")
-            fparam.close()
-        if run:
-            os.system(f'{self.pflibpath} -s {self.fname}.txt')
+        subprocess.run(f'{self.pflibpath} -s {self.name}',shell=True,check=True)
+
+    def cmd(self,cmds) :
+        if isinstance(cmds,list) :
+            for c in cmds :
+                self.write(f'{c}\n')
+        else :
+            self.write(f'{c}\n')
+        self.flush()
+
+    def __str__(self) :
+        with open(self.name,'r') as r :
+            return r.read()
 
     def fc_reset(self):
-        self.pc.extend(["FAST_CONTROL","FC_RESET","QUIT"])
+        self.cmd(["FAST_CONTROL","FC_RESET","QUIT"])
 
     def fc_multisample(self,nsamples):
-        self.pc.append("FAST_CONTROL")
-        self.pc.append("MULTISAMPLE")
-        self.pc.append("Y") # Enable multisample readout? Y/N
-        self.pc.append(f"{nsamples}") # Number of samples
-        self.pc.append("QUIT")
+        self.cmd("FAST_CONTROL")
+        self.cmd("MULTISAMPLE")
+        self.cmd("Y") # Enable multisample readout? Y/N
+        self.cmd(nsamples) # Number of samples
+        self.cmd("QUIT")
 
     def fc_calib(self,l1a_offset):
-        self.pc.append("FAST_CONTROL")
-        self.pc.append("CALIB") # Setup calibration pulse
-        self.pc.append("2") # Calibration pulse length?
-        self.pc.append(f"{l1a_offset}") # L1A offset
-        self.pc.append("QUIT")
+        self.cmd("FAST_CONTROL")
+        self.cmd("CALIB") # Setup calibration pulse
+        self.cmd("2") # Calibration pulse length?
+        self.cmd(l1a_offset) # L1A offset
+        self.cmd("QUIT")
 
     def roc_resyncload(self,rocs):
-        self.pc.append("ROC")
+        self.cmd("ROC")
         for iroc in rocs:
-            self.pc.extend(["IROC",iroc,"HARDRESET","RESYNCLOAD"])
-        self.pc.append("QUIT")
+            self.cmd(["IROC",iroc,"HARDRESET","RESYNCLOAD"])
+        self.cmd("QUIT")
 
     def roc_loadparam(self,config):
-        self.pc.append("ROC") # ROC Configuration
+        self.cmd("ROC") # ROC Configuration
         for iroc in rocs: # IROC: Which ROC to manage?
-            self.pc.extend(["IROC",iroc,"LOAD_PARAM",config])
-            self.pc.append("N") # Update all parameter values on the chip using the defaults in the manual for any values not provided?
-        self.pc.append("QUIT")
+            self.cmd(["IROC",iroc,"LOAD_PARAM",config])
+            self.cmd("N") # Update all parameter values on the chip using the defaults in the manual for any values not provided?
+        self.cmd("QUIT")
 
     def roc_param(self,register,param,value):
-        self.pc.append("ROC")
-        self.pc.append("POKE_PARAM") # Change a single parameter value
-        self.pc.append(register) # Page
-        self.pc.append(param) # Parameter
-        self.pc.append(value) # Value
+        self.cmd("ROC")
+        self.cmd("POKE_PARAM") # Change a single parameter value
+        self.cmd(register) # Page
+        self.cmd(param) # Parameter
+        self.cmd(value) # Value
         
     def bias_init(self,board):
-        self.pc.append("BIAS") # BIAS voltage setting
-        self.pc.append("INIT") # Initialize a board
-        self.pc.append(f"{board}") # Board
-        self.pc.append("QUIT")
+        self.cmd("BIAS") # BIAS voltage setting
+        self.cmd("INIT") # Initialize a board
+        self.cmd(f"{board}") # Board
+        self.cmd("QUIT")
 
     def bias_set(self,board,hdmi,sipm_led,bias):
-        self.pc.append("BIAS")
-        self.pc.append("SET") # Set a specific bias line setting
-        self.pc.append(f"{board}") # Which board
-        self.pc.append(f"{sipm_led}") # SiPM(0) or LED(1) 
-        self.pc.append(f"{hdmi}") # Which HDMI connector
-        self.pc.append(f"{bias}") # LED BIAS DAC
+        self.cmd("BIAS")
+        self.cmd("SET") # Set a specific bias line setting
+        self.cmd(board) # Which board
+        self.cmd(sipm_led) # SiPM(0) or LED(1) 
+        self.cmd(hdmi) # Which HDMI connector
+        self.cmd(bias) # LED BIAS DAC
         
     def elinks_reset(self):
-        self.pc.extend(["ELINKS","HARD_RESET","QUIT"])
+        self.cmd(["ELINKS","HARD_RESET","QUIT"])
 
     def elinks_relink(self):
-        self.pc.extend(["ELINKS","RELINK","QUIT"])
+        self.cmd(["ELINKS","RELINK","QUIT"])
 
     def daq_reset(self):
-        self.pc.extend(["DAQ","HARD_RESET","QUIT"])
+        self.cmd(["DAQ","HARD_RESET","QUIT"])
         
     def daq_enable(self,board):
-        self.pc.append("DAQ")
-        self.pc.append("SETUP") # Setup the DAQ
-        self.pc.append("STANDARD") # Do the standard setup for HCAL
-        self.pc.append(f"{board}") # FPGA id
-        self.pc.append("ENABLE") # Toggle enable status
-        self.pc.append("QUIT")
-        self.pc.append("QUIT")
+        self.cmd("DAQ")
+        self.cmd("SETUP") # Setup the DAQ
+        self.cmd("STANDARD") # Do the standard setup for HCAL
+        self.cmd(board) # FPGA id
+        self.cmd("ENABLE") # Toggle enable status
+        self.cmd("QUIT")
+        self.cmd("QUIT")
 
     def set_general(self,board=0,rocs=[0,1,2],config="config/march26_1400_LowBiasLEDFlash.raw"):
-        self.pc = []
         self.fc_reset()
         self.roc_resyncload(rocs)
         self.elinks_reset()
@@ -95,10 +114,9 @@ class PFConfig:
         self.elinks_relink()
 
     def set_charge_injection(self):
-        
+        pass
         
     def set_led(self,board=0,hdmi=0,sipm_bias=3784,led_bias=2500):
-        self.pc = [] # Should we re-start the commands here?
         self.bias_init(board)
         self.bias_set(board,hdmi,0,sipm_bias)
         self.bias_set(board,hdmi,1,led_bias)
