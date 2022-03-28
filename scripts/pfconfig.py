@@ -1,4 +1,13 @@
-"""Run a script through pftool"""
+"""Run a script through pftool
+
+Open the config, list the commands you want to use, then run it.
+
+    import pfconfig
+    with pfconfig.connect() as c :
+        c.set_general()
+        c.run()
+
+"""
 
 import tempfile
 import subprocess
@@ -15,7 +24,7 @@ class PFConfig(tempfile.NamedTemporaryFile):
             c.set_general()
             c.run()
 
-    Event better, use simpler connect function:
+    Even better, use simpler connect function:
         
         import pfconfig
         with pfconfig.connect() as c :
