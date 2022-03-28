@@ -1,4 +1,13 @@
-"""Run a script through pftool"""
+"""Run a script through pftool
+
+Open the config, list the commands you want to use, then run it.
+
+    import pfconfig
+    with pfconfig.connect() as c :
+        c.set_general()
+        c.run()
+
+"""
 
 import tempfile
 import subprocess
@@ -11,13 +20,21 @@ class PFConfig(tempfile.NamedTemporaryFile):
     Create it, write commands, run the pftool.
 
         from pfconfig import PFConfig
-        c = PFConfig()
-        c.set_general()
-        c.run() # will hang if user doesn't exit fully!
+        with PFConfig() as c :
+            c.set_general()
+            c.run()
+
+    Even better, use simpler connect function:
+        
+        import pfconfig
+        with pfconfig.connect() as c :
+            c.set_general()
+            c.run()
 
     """
 
     def __init__(self) :
+        super().__init__(mode='w+')
         self.pflibpath = 'pftool'
 
     def run(self,run=False):
@@ -72,7 +89,7 @@ class PFConfig(tempfile.NamedTemporaryFile):
         self.cmd(param) # Parameter
         self.cmd(value) # Value
         self.cmd("QUIT")
-        
+
     def bias_init(self,board):
         self.cmd("BIAS") # BIAS voltage setting
         self.cmd("INIT") # Initialize a board
@@ -86,7 +103,7 @@ class PFConfig(tempfile.NamedTemporaryFile):
         self.cmd(sipm_led) # SiPM(0) or LED(1) 
         self.cmd(hdmi) # Which HDMI connector
         self.cmd(bias) # LED BIAS DAC
-        
+
     def elinks_reset(self):
         self.cmd(["ELINKS","HARD_RESET","QUIT"])
 
@@ -127,3 +144,6 @@ class PFConfig(tempfile.NamedTemporaryFile):
         self.bias_init(board)
         self.bias_set(board,hdmi,0,sipm_bias)
         self.bias_set(board,hdmi,1,led_bias)
+
+def connect() :
+    return PFConfig()
