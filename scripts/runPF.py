@@ -31,8 +31,8 @@ def main(args):
             print('Relink')
             c.elinks_reset()
             c.elinks_relink()
-        elif "vref" in args.commands:
-            print(f'Setting vref {args.vref} for rocs ',args.rocs)
+        elif "value" in args.commands:
+            print(f'Setting vref {args.value} for rocs ',args.rocs)
             for roc in args.rocs:
                 c.set_vref(args.value,args.roc)
         elif "pedestal" in args.commands:
@@ -65,9 +65,10 @@ if __name__=="__main__":
         nargs='+',
         choices=[
             "general",
-            "charge","nocharge",
+            "charge",
+            "nocharge",
             "relink",
-            "vref",
+            "value",
             "pedestal",
             "led",
             "bias",
