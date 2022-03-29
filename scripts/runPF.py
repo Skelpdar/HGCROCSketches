@@ -34,7 +34,7 @@ def main(args):
         elif "value" in args.commands:
             print(f'Setting vref {args.value} for rocs ',args.rocs)
             for roc in args.rocs:
-                c.set_vref(args.value,args.roc)
+                c.set_vref(args.value,args.rocs)
         elif "pedestal" in args.commands:
             print('Getting pedestal data')
             c.daq_pedestal(nevents=args.nevents,output_name=f"{args.odir}/{args.nevents}.raw")
