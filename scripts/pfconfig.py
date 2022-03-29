@@ -101,13 +101,14 @@ class PFConfig :
             self("IROC",iroc,"LOAD_PARAM",config)
             self("N") # Update all parameter values on the chip using the defaults in the manual for any values not provided?
         self("QUIT")
-
-    def roc_param(self,register,param,value):
+        
+    def roc_param(self,register,param,value,rocs):
         self("ROC")
-        self("POKE_PARAM") # Change a single parameter value
-        self(register) # Page
-        self(param) # Parameter
-        self(value) # Value
+        for iroc in rocs:
+            self("POKE_PARAM") # Change a single parameter value
+            self(register) # Page
+            self(param) # Parameter
+            self(value) # Value
         self("QUIT")
 
     def bias_init(self,board):
@@ -161,15 +162,18 @@ class PFConfig :
         self.daq_enable(board)
         self.elinks_relink()
 
-    def set_charge_injection(self,off=False):
+    def set_charge_injection(self,off=False,rocs=[0]):
         if off:
-            self.roc_param("Reference_Voltage_0","Calib_dac",0)
-            self.roc_param("Reference_Voltage_0","IntCtest",0)
-            self.roc_param("Channel_0","HighRange",0)
+            self.roc_param("Reference_Voltage_0","Calib_dac",0,rocs)
+            self.roc_param("Reference_Voltage_0","IntCtest",0,rocs)
+            self.roc_param("Channel_0","HighRange",0,rocs)
         else:
-            self.roc_param("Reference_Voltage_0","Calib_dac",50)
-            self.roc_param("Reference_Voltage_0","IntCtest",1)
-            self.roc_param("Channel_0","HighRange",1)
+            self.roc_param("Reference_Voltage_0","Calib_dac",50,rocs)
+            self.roc_param("Reference_Voltage_0","IntCtest",1,rocs)
+            self.roc_param("Channel_0","HighRange",1,rocs)
+
+    def set_vref(self,value):
+        self.roc_param("Reference_Voltage_0","INV_VREF",value)
 
     def set_led(self,board=0,hdmi=0,sipm_bias=3784,led_bias=2500):
         self.bias_init(board)

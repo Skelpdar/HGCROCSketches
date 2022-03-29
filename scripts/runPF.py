@@ -21,7 +21,7 @@ def main(args):
             c.set_general(board=args.board,rocs=args.rocs,config=args.fconfig,l1a_offset=args.offset)
         elif "charge" in args.commands:
             print('Injecting charge')
-            c.set_charge_injection()
+            c.set_charge_injection(args.rocs)
             print('Saving daq charge')
             c.daq_charge(nevents=args.nevents,output_name=f"{args.odir}/{args.nevents}.raw")
         elif "nocharge" in args.commands:
@@ -31,6 +31,10 @@ def main(args):
             print('Relink')
             c.elinks_reset()
             c.elinks_relink()
+        elif "vref" in args.commands:
+            print(f'Setting vref {args.vref} for rocs ',args.rocs)
+            for roc in args.rocs:
+                c.set_vref(args.value,args.roc)
         elif "pedestal" in args.commands:
             print('Getting pedestal data')
             c.daq_pedestal(nevents=args.nevents,output_name=f"{args.odir}/{args.nevents}.raw")
@@ -63,6 +67,7 @@ if __name__=="__main__":
             "general",
             "charge","nocharge",
             "relink",
+            "vref",
             "pedestal",
             "led",
             "bias",
@@ -97,7 +102,7 @@ if __name__=="__main__":
         type=int,
         nargs='+',
         dest='rocs',
-        default=[0,1,2],
+        default=[0],
         help='ROCs (separated by spaces)',
     )
     parser.add_argument(
@@ -128,6 +133,13 @@ if __name__=="__main__":
         dest='offset',
         default=17,
         help='L1A offset',
+    )
+    parser.add_argument(
+        '--value',
+        type=int,
+        dest='value',
+        default=0,
+        help='Parameter value',
     )
     parser.add_argument(
         '--nevents',
