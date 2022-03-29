@@ -36,7 +36,8 @@ class PFConfig :
     def __init__(self,dpm="cob1-dpm0") :
         self._file = tempfile.NamedTemporaryFile(mode='w+')
         self.pflibpath = f'/home/ldmx/pflib/pflib/pftool {dpm}'
-
+        print(f'To run {self.pflibpath}')
+        
     def __enter__(self) :
         return self
 
@@ -122,6 +123,7 @@ class PFConfig :
         self(sipm_led) # SiPM(0) or LED(1) 
         self(hdmi) # Which HDMI connector
         self(bias) # LED BIAS DAC
+        self("QUIT")
 
     def elinks_reset(self):
         self("ELINKS","HARD_RESET","QUIT")
@@ -158,7 +160,6 @@ class PFConfig :
         self.bias_init(board)
         self.daq_enable(board)
         self.elinks_relink()
-        self("EXIT")
 
     def set_charge_injection(self,off=False):
         if off:
@@ -169,18 +170,15 @@ class PFConfig :
             self.roc_param("Reference_Voltage_0","Calib_dac",50)
             self.roc_param("Reference_Voltage_0","IntCtest",1)
             self.roc_param("Channel_0","HighRange",1)
-        self("EXIT")
 
     def set_led(self,board=0,hdmi=0,sipm_bias=3784,led_bias=2500):
         self.bias_init(board)
         self.bias_set(board,hdmi,0,sipm_bias)
         self.bias_set(board,hdmi,1,led_bias)
-        self("EXIT")
 
     def set_bias(self,board=0,hdmi=0,sipm_bias=3784):
         self.bias_init(board)
         self.bias_set(board,hdmi,0,sipm_bias)        
-        self("EXIT")
 
 def connect(dpm):
     return PFConfig(dpm)
