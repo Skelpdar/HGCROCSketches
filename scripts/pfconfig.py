@@ -36,7 +36,8 @@ class PFConfig :
     def __init__(self,dpm="cob1-dpm0") :
         self._file = tempfile.NamedTemporaryFile(mode='w+')
         self.pflibpath = f'/home/ldmx/pflib/pflib/pftool {dpm}'
-
+        print(f'To run {self.pflibpath}')
+        
     def __enter__(self) :
         return self
 
@@ -119,9 +120,10 @@ class PFConfig :
         self.cmd("BIAS")
         self.cmd("SET") # Set a specific bias line setting
         self.cmd(board) # Which board
-        self.cmd(sipm_led) # SiPM(0) or LED(1) 
+        self.cmd(sipm_led) # SiPM(0) or LED(1)  
         self.cmd(hdmi) # Which HDMI connector
         self.cmd(bias) # LED BIAS DAC
+        self.cmd("QUIT")
 
     def elinks_reset(self):
         self.cmd(["ELINKS","HARD_RESET","QUIT"])
@@ -179,8 +181,7 @@ class PFConfig :
 
     def set_bias(self,board=0,hdmi=0,sipm_bias=3784):
         self.bias_init(board)
-        self.bias_set(board,hdmi,0,sipm_bias)        
-        self.cmd("EXIT")
+        self.bias_set(board,hdmi,0,sipm_bias)
 
 def connect(dpm):
     return PFConfig(dpm)
