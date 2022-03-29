@@ -3,7 +3,7 @@
 Open the config, list the commands you want to use, then run it.
 
     import pfconfig
-    with pfconfig.connect() as c :
+    with pfconfig.open() as c :
         c.set_general()
         c.run()
 
@@ -12,7 +12,7 @@ Open the config, list the commands you want to use, then run it.
 import tempfile
 import subprocess
 
-class PFConfig:
+class PFConfig :
     """PFConfig class which is a special tyep of temporary file
     
     Examples
@@ -27,7 +27,7 @@ class PFConfig:
     Even better, use simpler open function:
         
         import pfconfig
-        with pfconfig.connect() as c :
+        with pfconfig.open() as c :
             c.set_general()
             c.run()
 
@@ -36,6 +36,16 @@ class PFConfig:
     def __init__(self,dpm="cob1-dpm0") :
         self._file = tempfile.NamedTemporaryFile(mode='w+')
         self.pflibpath = f'/home/ldmx/pflib/pflib/pftool {dpm}'
+
+    def __enter__(self) :
+        return self
+
+    def __exit__(self,exc_type, exc_value, exc_traceback) :
+        self._file.__exit__(exc_type, exc_value, exc_traceback)
+
+    def __str__(self) :
+        with open(self._file.name,'r') as r :
+            return r.read()
 
     def __enter__(self) :
         return self
