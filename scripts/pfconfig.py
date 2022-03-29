@@ -58,96 +58,96 @@ class PFConfig :
         with open(self._file.name,'r') as r :
             return r.read()
 
+    def __call__(self, *args) :
+        for a in args :
+            if isinstance(a,list) :
+                self(*a)
+            else :
+                self._file.write(f'{a}\n')
+        self._file.flush()
+
     def run(self,run=False):
         if run :
             subprocess.run(f'{self.pflibpath} -s {self._file.name}',shell=True,check=True)
         else :
             print(str(self))
 
-    def cmd(self,cmds) :
-        if isinstance(cmds,list):
-            for c in cmds :
-                self._file.write(f'{c}\n')
-        else:
-            self._file.write(f'{cmds}\n')
-        self._file.flush()
-
     def fc_reset(self):
-        self.cmd(["FAST_CONTROL","FC_RESET","QUIT"])
+        self("FAST_CONTROL","FC_RESET","QUIT")
 
     def fc_multisample(self,nsamples):
-        self.cmd("FAST_CONTROL")
-        self.cmd("MULTISAMPLE")
-        self.cmd("Y") # Enable multisample readout? Y/N
-        self.cmd(nsamples) # Number of samples
-        self.cmd("QUIT")
+        self("FAST_CONTROL")
+        self("MULTISAMPLE")
+        self("Y") # Enable multisample readout? Y/N
+        self(nsamples) # Number of samples
+        self("QUIT")
 
     def fc_calib(self,l1a_offset):
-        self.cmd("FAST_CONTROL")
-        self.cmd("CALIB") # Setup calibration pulse
-        self.cmd("2") # Calibration pulse length?
-        self.cmd(l1a_offset) # L1A offset
-        self.cmd("QUIT")
+        self("FAST_CONTROL")
+        self("CALIB") # Setup calibration pulse
+        self("2") # Calibration pulse length?
+        self(l1a_offset) # L1A offset
+        self("QUIT")
 
     def roc_resyncload(self,rocs):
-        self.cmd("ROC")
+        self("ROC")
         for iroc in rocs:
-            self.cmd(["IROC",iroc,"HARDRESET","RESYNCLOAD"])
-        self.cmd("QUIT")
+            self("IROC",iroc,"HARDRESET","RESYNCLOAD")
+        self("QUIT")
 
     def roc_loadparam(self,config,rocs):
-        self.cmd("ROC") # ROC Configuration
+        self("ROC") # ROC Configuration
         for iroc in rocs: #rocs: # IROC: Which ROC to manage?
-            self.cmd(["IROC",iroc,"LOAD_PARAM",config])
-            self.cmd("N") # Update all parameter values on the chip using the defaults in the manual for any values not provided?
-        self.cmd("QUIT")
+            self("IROC",iroc,"LOAD_PARAM",config)
+            self("N") # Update all parameter values on the chip using the defaults in the manual for any values not provided?
+        self("QUIT")
 
     def roc_param(self,register,param,value):
-        self.cmd("ROC")
-        self.cmd("POKE_PARAM") # Change a single parameter value
-        self.cmd(register) # Page
-        self.cmd(param) # Parameter
-        self.cmd(value) # Value
-        self.cmd("QUIT")
+        self("ROC")
+        self("POKE_PARAM") # Change a single parameter value
+        self(register) # Page
+        self(param) # Parameter
+        self(value) # Value
+        self("QUIT")
 
     def bias_init(self,board):
-        self.cmd("BIAS") # BIAS voltage setting
-        self.cmd("INIT") # Initialize a board
-        self.cmd(f"{board}") # Board
-        self.cmd("QUIT")
+        self("BIAS") # BIAS voltage setting
+        self("INIT") # Initialize a board
+        self(f"{board}") # Board
+        self("QUIT")
 
     def bias_set(self,board,hdmi,sipm_led,bias):
-        self.cmd("BIAS")
-        self.cmd("SET") # Set a specific bias line setting
-        self.cmd(board) # Which board
-        self.cmd(sipm_led) # SiPM(0) or LED(1)  
-        self.cmd(hdmi) # Which HDMI connector
-        self.cmd(bias) # LED BIAS DAC
-        self.cmd("QUIT")
+        self("BIAS")
+        self("SET") # Set a specific bias line setting
+        self(board) # Which board
+        self(sipm_led) # SiPM(0) or LED(1) 
+        self(hdmi) # Which HDMI connector
+        self(bias) # LED BIAS DAC
+        self("QUIT")
 
     def elinks_reset(self):
-        self.cmd(["ELINKS","HARD_RESET","QUIT"])
+        self("ELINKS","HARD_RESET","QUIT")
 
     def elinks_relink(self):
-        self.cmd(["ELINKS","RELINK","QUIT"])
+        self("ELINKS","RELINK","QUIT")
 
     def daq_reset(self):
-        self.cmd(["DAQ","HARD_RESET","QUIT"])
+        self("DAQ","HARD_RESET","QUIT")
 
     def daq_pedestal(self,nevents=100,output_name="100.raw"):
-        self.cmd(["DAQ","PEDESTAL",nevents,output_name,"QUIT"])
+        self("DAQ","PEDESTAL",nevents,output_name,"QUIT")
         
     def daq_charge(self,nevents=100,output_name="100.raw"):
-        self.cmd(["DAQ","CHARGE",nevents,output_name,"QUIT"])
+        self("DAQ","CHARGE",nevents,output_name,"QUIT")
 
     def daq_enable(self,board):
-        self.cmd("DAQ")
-        self.cmd("SETUP") # Setup the DAQ
-        self.cmd("STANDARD") # Do the standard setup for HCAL
-        self.cmd(board) # FPGA id
-        self.cmd("ENABLE") # Toggle enable status
-        self.cmd("QUIT")
-        self.cmd("QUIT")
+        self("DAQ")
+        self("SETUP") # Setup the DAQ
+        self("STANDARD") # Do the standard setup for HCAL
+        self(board) # FPGA id
+        self("ENABLE") # Toggle enable status
+        self("QUIT")
+        self("QUIT")
 
     def set_general(self,board=0,rocs=[0,1,2],config="configs/march26_1400_LowBiasLEDFlash.raw",l1a_offset=17):
         self.fc_reset()
@@ -160,7 +160,6 @@ class PFConfig :
         self.bias_init(board)
         self.daq_enable(board)
         self.elinks_relink()
-        self.cmd("EXIT")
 
     def set_charge_injection(self,off=False):
         if off:
@@ -171,17 +170,15 @@ class PFConfig :
             self.roc_param("Reference_Voltage_0","Calib_dac",50)
             self.roc_param("Reference_Voltage_0","IntCtest",1)
             self.roc_param("Channel_0","HighRange",1)
-        self.cmd("EXIT")
 
     def set_led(self,board=0,hdmi=0,sipm_bias=3784,led_bias=2500):
         self.bias_init(board)
         self.bias_set(board,hdmi,0,sipm_bias)
         self.bias_set(board,hdmi,1,led_bias)
-        self.cmd("EXIT")
 
     def set_bias(self,board=0,hdmi=0,sipm_bias=3784):
         self.bias_init(board)
-        self.bias_set(board,hdmi,0,sipm_bias)
+        self.bias_set(board,hdmi,0,sipm_bias)        
 
 def connect(dpm):
     return PFConfig(dpm)
