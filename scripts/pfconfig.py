@@ -179,7 +179,7 @@ class PFConfig :
 
     def set_bias(self,board=0,hdmi=0,sipm_bias=3784):
         self.bias_init(board)
-        self.bias_set(board,hdmi,1,sipm_bias)        
+        self.bias_set(board,hdmi,0,sipm_bias)        
         self.cmd("EXIT")
 
 def connect(dpm):
