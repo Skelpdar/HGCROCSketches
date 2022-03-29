@@ -37,6 +37,9 @@ def main(args):
         elif "led" in args.commands:
             print('Setting LED pulse')
             c.set_led(args.board,args.hdmi,args.sipm,args.led)
+        elif "sipm" in args.commands:
+            print('Setting BIAS')
+            c.set_bias(args.board,args.hdmi,args.sipm)
         elif "pscan" in args.commands:
             print('DAQ with phase scan')
             pulse_scan(c,args.odir)
