@@ -2,11 +2,11 @@ import argparse
 
 def general_action(arg,c):
     print('Setting general commands')
-    c.set_general(board=arg.board,rocs=arg.rocs,config=arg.fconfig,l1a_offset=arg.offset)
+    c.set_general(board=arg.board,rocs=arg.rocs.split(','),config=arg.fconfig,l1a_offset=arg.offset)
 
 def charge_action(arg,c):
     print('Enabling/Disabling charge injection',arg.off)
-    c.set_charge_injection(arg.rocs,off=arg.off)
+    c.set_charge_injection(arg.rocs.split(','),off=arg.off)
     print('Saving daq charge')
     c.daq_charge(nevents=arg.nevents,output_name=f"{arg.odir}/{arg.nevents}.raw")
 
@@ -16,13 +16,13 @@ def relink_action(arg,c):
     c.elinks_relink()
 
 def vref_action(arg,c):
-    print(f'Setting vref {arg.value} for half {arg.half}',arg.rocs)
-    c.roc_param("Reference_Voltage_{arg.half}","INV_VREF",arg.value,arg.rocs)
+    print(f'Setting vref {arg.value} for half {arg.half}',arg.rocs.split(','))
+    c.roc_param(f"Reference_Voltage_{arg.half}","INV_VREF",arg.value,arg.rocs.split(','))
 
 def l1offset_action(arg,c):
-    print('Scanning over L1Offset for Halfs 0 and 1 and rocs',arg.rocs)
-    c.roc_param("Digital_Half_0","L1Offset",arg.value,arg.rocs)
-    c.roc_param("Digital_Half_1","L1Offset",arg.value,arg.rocs)
+    print('Scanning over L1Offset for Halfs 0 and 1 and rocs',arg.rocs.split(','))
+    c.roc_param("Digital_Half_0","L1Offset",arg.value,arg.rocs.split(','))
+    c.roc_param("Digital_Half_1","L1Offset",arg.value,arg.rocs.split(','))
 
 def pedestal_action(arg,c):
     print('Getting pedestal data')
@@ -30,19 +30,19 @@ def pedestal_action(arg,c):
 
 def hardreset_action(arg,c):
     print('Resync load')
-    c.roc_resyncload(arg.rocs)
+    c.roc_resyncload(arg.rocs.split(','))
 
 def led_action(arg,c):
     print('Setting LED pulse')
-    c.set_led(arg.board,arg.hdmi,arg.sipm,arg.led)
+    c.set_led(arg.board,arg.hdmi.split(','),arg.sipm,arg.led)
 
 def bias_action(arg,c):
     print('Setting BIAS')
-    hdmis = arg.hdmi
-    if hdmis==[-2]:
+    hdmis = arg.hdmi.split(',')
+    if hdmis=='-2':
         hdmis = list(range(0,16))
     for hdmi in hdmis:
-        c.set_bias(arg.board,hdmi,arg.sipm)
+        c.set_bias(arg.board,int(hdmi),arg.sipm)
 
 def pscan_action(arg,c):
     print('DAQ charge with phase scan')
@@ -65,13 +65,13 @@ if __name__=="__main__":
     parser.add_argument('--run',       action='store_true', dest='run',                 help='Run')
     parser.add_argument('--dpm',       type=int,            dest='dpm',    default=1,   help='DPM')
     parser.add_argument('--board','-b',type=int,            dest='board',  default=0,   help='Board ID')
-    parser.add_argument('--rocs',      type=int,nargs='+',  dest='rocs',   default=[0], help='ROCs (separated by spaces)')
-    parser.add_argument('--hdmi',      type=int,nargs="+",  dest='hdmi',   default=0,   help='HDMI connector')
+    parser.add_argument('--rocs',      type=str,            dest='rocs',   default='0', help='ROCs (separated by commas)')
+    parser.add_argument('--hdmi',      type=str,            dest='hdmi',   default='0', help='HDMI connectors (separated by commas). Use -2 to run all connectors.')
     parser.add_argument('--nevents',   type=int,            dest='nevents',default=100, help='Number of events')
     subparsers = parser.add_subparsers(help='Choose which action to perform.')
 
     parse_general = subparsers.add_parser('general', help='Set general configuration')
-    parse_general.add_argument('--fconfig',type=str,dest='fconfig',default="configs/march26_1400_LowBiasLEDFlash.yaml",help='Config file')
+    parse_general.add_argument('--fconfig',type=str,dest='fconfig',default="HGCROCSketches/configs/dpm1_board0_baseConfig.yaml",help='Config file')
     parse_general.add_argument('--offset',type=int,dest='offset',default=17,help='L1A offset')
     parse_general.set_defaults(action=general_action)
 
@@ -120,4 +120,5 @@ if __name__=="__main__":
     import pfconfig
     with pfconfig.connect(f"cob1-dpm{arg.dpm}") as c:
         arg.action(arg,c)
+        #c.("EXIT")
         c.run(arg.run)
