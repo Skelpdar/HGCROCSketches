@@ -8,6 +8,7 @@ import glob
 def read():
 
     listOfFiles = glob.glob(f"../data/l1scan/*.txt")
+    #listOfFiles = glob.glob(f"../data/l1scan_80to90/*.txt")
     nsamples = 4
     theDict = {'x':[], 'x_error':[], 'y':[], 'y_error':[],'offset':[],'channel':[]}
     sampleDict = {'xx': [], 'yy': [], 'offset':[],'channel':[]}
@@ -62,8 +63,9 @@ def plot():
     f, ax = plt.subplots(figsize=(25*(1/2.54), 13.875*(1/2.54)))
     for channel in range(0,37):
         df_small = df.loc[df["channel"]==channel]
+        pedestal=np.mean(df_small["y"][:4])
         
-        ax.errorbar(df_small["x"], df_small["y"],
+        ax.errorbar(df_small["x"], df_small["y"]-pedestal,
                     yerr=df_small["y_error"], xerr=df_small["x_error"],
                     linestyle='None',
                     marker="o",
@@ -71,13 +73,13 @@ def plot():
                     linewidth=0.5,
                     label=f"Channel {channel}"
                     )
-    plt.xlabel("Time [ns]")
+    plt.xlabel("L1AOffset [ns]")
     plt.ylabel("ADC Count")
-    plt.title("Offset scan")
+    plt.title("L1AOffset Scan, CERN 2022-03-30")
     plt.tight_layout()
-    leg1 = ax.legend(borderpad=0.5, loc=1, ncol=1, frameon=True,facecolor="white",framealpha=1)
+    leg1 = ax.legend(borderpad=0.5, loc=1, ncol=10, frameon=True,facecolor="white",framealpha=1,prop={'size': 6})
     leg1._legend_box.align = "left"
-    leg1.set_title("SiPM Bias = 43.5 V")
+    leg1.set_title("DPM/Board/HCROC/HALF : 0/0/0/0\nSiPM Bias = 43.5 V")
     ax.grid(True)
     plt.savefig("./mean_per_channel.pdf")
 
