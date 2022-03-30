@@ -156,7 +156,7 @@ class PFConfig :
         self.roc_resyncload(rocs)
         self.elinks_reset()
         self.daq_reset()
-        self.fc_multisample(7)
+        self.fc_multisample(3)
         self.roc_loadparam(config,rocs)
         self.fc_calib(l1a_offset)
         self.bias_init(board)
