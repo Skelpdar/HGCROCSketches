@@ -35,6 +35,7 @@ class PFConfig :
 
     def __init__(self,dpm="cob1-dpm0") :
         self._file = tempfile.NamedTemporaryFile(mode='w+')
+        #self.pflibpath = f'/home/ldmx/pflib/pflib_jm/pftool {dpm}'
         self.pflibpath = f'/home/ldmx/pflib/pflib/pftool {dpm}'
         print(f'To run {self.pflibpath}')
         
@@ -171,9 +172,6 @@ class PFConfig :
             self.roc_param("Reference_Voltage_0","Calib_dac",50,rocs)
             self.roc_param("Reference_Voltage_0","IntCtest",1,rocs)
             self.roc_param("Channel_0","HighRange",1,rocs)
-
-    def set_vref(self,value,rocs):
-        self.roc_param("Reference_Voltage_0","INV_VREF",value,rocs)
 
     def set_led(self,board=0,hdmi=0,sipm_bias=3784,led_bias=2500):
         self.bias_init(board)

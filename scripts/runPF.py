@@ -1,167 +1,123 @@
 import argparse
 
-def pulse_scan(c,output_dir):
+def general_action(arg,c):
+    print('Setting general commands')
+    c.set_general(board=arg.board,rocs=arg.rocs,config=arg.fconfig,l1a_offset=arg.offset)
+
+def charge_action(arg,c):
+    print('Enabling/Disabling charge injection',arg.off)
+    c.set_charge_injection(arg.rocs,off=arg.off)
+    print('Saving daq charge')
+    c.daq_charge(nevents=arg.nevents,output_name=f"{arg.odir}/{arg.nevents}.raw")
+
+def relink_action(arg,c):
+    print('Relink')
+    c.elinks_reset()
+    c.elinks_relink()
+
+def vref_action(arg,c):
+    print(f'Setting vref {arg.value} for half {arg.half}',arg.rocs)
+    c.roc_param("Reference_Voltage_{arg.half}","INV_VREF",arg.value,arg.rocs)
+
+def l1offset_action(arg,c):
+    print('Scanning over L1Offset for Halfs 0 and 1 and rocs',arg.rocs)
+    c.roc_param("Digital_Half_0","L1Offset",arg.value,arg.rocs)
+    c.roc_param("Digital_Half_1","L1Offset",arg.value,arg.rocs)
+
+def pedestal_action(arg,c):
+    print('Getting pedestal data')
+    c.daq_pedestal(nevents=arg.nevents,output_name=f"{arg.odir}/{arg.tag}{arg.nevents}.raw")
+
+def hardreset_action(arg,c):
+    print('Resync load')
+    c.roc_resyncload(arg.rocs)
+
+def led_action(arg,c):
+    print('Setting LED pulse')
+    c.set_led(arg.board,arg.hdmi,arg.sipm,arg.led)
+
+def bias_action(arg,c):
+    print('Setting BIAS')
+    hdmis = arg.hdmi
+    if hdmis==[-2]:
+        hdmis = list(range(0,16))
+    for hdmi in hdmis:
+        c.set_bias(arg.board,hdmi,arg.sipm)
+
+def pscan_action(arg,c):
+    print('DAQ charge with phase scan')
     for phase in range(0,15):
         c.roc_param("top","phase",phase)
-        c.daq_charge(nevents=100,output_name=f"{output_dir}/{phase}.raw")
+        c.daq_charge(nevents=arg.nevents,output_name=f"{output_dir}/{phase}.raw")
 
-def pulse_l1a_scan(c,output_dir):
+def sscan_action(arg,c):
+    print('DAQ charge with phase and L1A offset scan')
     offsetList=[1,8,16,24,32,48,56,64,72,80,88,96,104]
     for offset in offsetList:
         c.fc_calib(offset)
         for phase in range(0,15):
             c.roc_param("top","phase",phase)
-            c.daq_charge(nevents=100,output_name=f"{output_dir}/{offset}_{phase}.raw")
-
-def main(args):
-    import pfconfig
-    with pfconfig.connect(f"cob1-dpm{args.dpm}") as c:
-        if "general" in args.commands:
-            print('Setting general commands')
-            c.set_general(board=args.board,rocs=args.rocs,config=args.fconfig,l1a_offset=args.offset)
-        elif "charge" in args.commands:
-            print('Injecting charge')
-            c.set_charge_injection(args.rocs)
-            print('Saving daq charge')
-            c.daq_charge(nevents=args.nevents,output_name=f"{args.odir}/{args.nevents}.raw")
-        elif "nocharge" in args.commands:
-            print('Disabling charge injection')
-            c.set_charge_injection(off=True)
-        elif "relink" in args.commands:
-            print('Relink')
-            c.elinks_reset()
-            c.elinks_relink()
-        elif "value" in args.commands:
-            print(f'Setting vref {args.value} for rocs ',args.rocs)
-            for roc in args.rocs:
-                c.set_vref(args.value,args.rocs)
-        elif "pedestal" in args.commands:
-            print('Getting pedestal data')
-            c.daq_pedestal(nevents=args.nevents,output_name=f"{args.odir}/{args.nevents}.raw")
-            c.cmd("EXIT")
-        elif "led" in args.commands:
-            print('Setting LED pulse')
-            c.set_led(args.board,args.hdmi,args.sipm,args.led)
-        elif "bias" in args.commands:
-            print('Setting BIAS')
-            hdmis = args.hdmi
-            if hdmis==[-2]:
-                hdmis = list(range(0,16))
-            for hdmi in hdmis:
-                c.set_bias(args.board,hdmi,args.sipm)
-        elif "pscan" in args.commands:
-            print('DAQ with phase scan')
-            pulse_scan(c,args.odir)
-        elif "sscan" in args.commands:
-            print('DAQ with phase and L1A offset scan')
-            pulse_l1a_scan(c,args.odir)
-        c.run(args.run)
-
+            c.daq_charge(nevents=arg.nevents,output_name=f"{output_dir}/{offset}_{phase}.raw")
+            
 if __name__=="__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-c','--commands',
-        dest="commands",
-        nargs='+',
-        choices=[
-            "general",
-            "charge",
-            "nocharge",
-            "relink",
-            "value",
-            "pedestal",
-            "led",
-            "bias",
-            "pscan","sscan"
-        ],
-        help="Commands to run separated by spaces",
-    )
-    parser.add_argument(
-        '-o','--odir',
-        dest='odir',
-        type=str,
-        default='.',
-        help='output directory that contains raw data e.g. ./data/led/'
-    )
-    parser.add_argument(
-        '--dpm',
-        type=int,
-        dest='dpm',
-        default=1,
-        help='DPM',
-    )
-    parser.add_argument(
-        '--board',
-        '-b',
-        type=int,
-        dest='board',
-        default=0,
-        help='Board ID',
-    )
-    parser.add_argument(
-        '--rocs',
-        type=int,
-        nargs='+',
-        dest='rocs',
-        default=[0],
-        help='ROCs (separated by spaces)',
-    )
-    parser.add_argument(
-        '--hdmi',
-        type=int,
-        nargs="+",
-        dest='hdmi',
-        default=0,
-        help='HDMI connector',
-    )
-    parser.add_argument(
-        '--sipm',
-        type=int,
-        dest='sipm',
-        default=3784,
-        help='SiPM Bias',
-    )
-    parser.add_argument(
-        '--led',
-        type=int,
-        dest='led',
-        default=250,
-        help='LED Bias',
-    )
-    parser.add_argument(
-        '--offset',
-        type=int,
-        dest='offset',
-        default=17,
-        help='L1A offset',
-    )
-    parser.add_argument(
-        '--value',
-        type=int,
-        dest='value',
-        default=0,
-        help='Parameter value',
-    )
-    parser.add_argument(
-        '--nevents',
-        type=int,
-        dest='nevents',
-        default=100,
-        help='Number of events',
-    )
-    parser.add_argument(
-        '--fconfig',
-        type=str,
-        dest='fconfig',
-        default="configs/march26_1400_LowBiasLEDFlash.yaml",
-        help='Board ID',
-    )
-    parser.add_argument(
-        '--run',
-        action='store_true',
-        dest='run',
-        help='Run',
-    )
-    args = parser.parse_args()
+    parser = argparse.ArgumentParser(f'python runPF.py ',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--run',       action='store_true', dest='run',                 help='Run')
+    parser.add_argument('--dpm',       type=int,            dest='dpm',    default=1,   help='DPM')
+    parser.add_argument('--board','-b',type=int,            dest='board',  default=0,   help='Board ID')
+    parser.add_argument('--rocs',      type=int,nargs='+',  dest='rocs',   default=[0], help='ROCs (separated by spaces)')
+    parser.add_argument('--hdmi',      type=int,nargs="+",  dest='hdmi',   default=0,   help='HDMI connector')
+    parser.add_argument('--nevents',   type=int,            dest='nevents',default=100, help='Number of events')
+    subparsers = parser.add_subparsers(help='Choose which action to perform.')
 
-    main(args)
+    parse_general = subparsers.add_parser('general', help='Set general configuration')
+    parse_general.add_argument('--fconfig',type=str,dest='fconfig',default="configs/march26_1400_LowBiasLEDFlash.yaml",help='Config file')
+    parse_general.add_argument('--offset',type=int,dest='offset',default=17,help='L1A offset')
+    parse_general.set_defaults(action=general_action)
+
+    parse_charge = subparsers.add_parser('charge', help='Charge daq')
+    parse_charge.add_argument('--off',action='store_true',dest='off',help='Turn charge injection off')
+    parse_charge.set_defaults(action=charge_action)
+
+    parse_relink = subparsers.add_parser('relink', help='Relink')
+    parse_relink.set_defaults(action=relink_action)
+
+    parse_vref = subparsers.add_parser('vref', help='Change inv vref')
+    parse_vref.add_argument('--value',type=int,dest='value',default=0,help='Parameter value')
+    parse_vref.add_argument('--half',type=int,dest='half',default=0,help='Half')
+    parse_vref.set_defaults(action=vref_action)
+    
+    parse_l1offset = subparsers.add_parser('l1offset', help='Change l1offset')
+    parse_l1offset.add_argument('--value',type=int,dest='value',default=0,help='Parameter value')
+    parse_l1offset.set_defaults(action=l1offset_action)
+    
+    parse_pedestal = subparsers.add_parser('pedestal', help='Pedestal run')
+    parse_pedestal.add_argument('-o','--odir',dest='odir',type=str,default='.',help='output directory that contains raw data e.g. ./data/led/')
+    parse_pedestal.add_argument('--tag',dest='tag',type=str,default='',help='tag of output filename')
+    parse_pedestal.set_defaults(action=pedestal_action)
+
+    parse_led = subparsers.add_parser('led', help='LED pulse run')
+    parse_led.set_defaults(action=led_action)
+    
+    parse_bias = subparsers.add_parser('bias', help='Set LED or SiPM bias')
+    parse_bias.add_argument('--sipm',type=int,dest='sipm',default=3784,help='SiPM Bias')
+    parse_bias.add_argument('--led',type=int,dest='led',default=0,help='LED Bias')
+    parse_bias.set_defaults(action=bias_action)
+    
+    parse_pscan = subparsers.add_parser('pscan', help='Pulse scan - changing phase')
+    parse_pscan.set_defaults(action=pscan_action)
+
+    parse_sscan = subparsers.add_parser('sscan', help='Super scan - changing phase and L1A offset')
+    parse_sscan.set_defaults(action=sscan_action)
+
+    arg = parser.parse_args()
+
+    # Each sub-command defines the 'action' member of the arg namespace
+    # so if this member is not defined, no action has been selected
+    if 'action' not in arg :
+        parser.error('Must choose an action to perform!')
+
+    import pfconfig
+    with pfconfig.connect(f"cob1-dpm{arg.dpm}") as c:
+        arg.action(arg,c)
+        c.run(arg.run)
