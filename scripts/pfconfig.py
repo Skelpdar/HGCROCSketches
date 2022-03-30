@@ -35,8 +35,8 @@ class PFConfig :
 
     def __init__(self,dpm="cob1-dpm0") :
         self._file = tempfile.NamedTemporaryFile(mode='w+')
-        #self.pflibpath = f'/home/ldmx/pflib/pflib_jm/pftool {dpm}'
-        self.pflibpath = f'/home/ldmx/pflib/pflib/pftool {dpm}'
+        self.pflibpath = f'/home/ldmx/pflib/pflib_jm/pftool {dpm}'
+        #self.pflibpath = f'/home/ldmx/pflib/pflib/pftool {dpm}'
         print(f'To run {self.pflibpath}')
         
     def __enter__(self) :
@@ -106,6 +106,7 @@ class PFConfig :
     def roc_param(self,register,param,value,rocs):
         self("ROC")
         for iroc in rocs:
+            self("IROC",iroc)
             self("POKE_PARAM") # Change a single parameter value
             self(register) # Page
             self(param) # Parameter
@@ -142,6 +143,13 @@ class PFConfig :
     def daq_charge(self,nevents=100,output_name="100.raw"):
         self("DAQ","CHARGE",nevents,output_name,"QUIT")
 
+    def daq_external(self,nevents=1000):
+        self("DAQ","EXTERNAL")
+        self("") # run number
+        self("") # filename
+        self(f"{nevents}") # target events
+        self("QUIT")
+
     def daq_enable(self,board):
         self("DAQ")
         self("SETUP") # Setup the DAQ
@@ -163,15 +171,15 @@ class PFConfig :
         self.daq_enable(board)
         self.elinks_relink()
 
-    def set_charge_injection(self,off=False,rocs=[0]):
+    def set_charge_injection(self,rocs=[0],off=False,half=0,ch=0):
         if off:
-            self.roc_param("Reference_Voltage_0","Calib_dac",0,rocs)
-            self.roc_param("Reference_Voltage_0","IntCtest",0,rocs)
-            self.roc_param("Channel_0","HighRange",0,rocs)
+            self.roc_param(f"Reference_Voltage_{half}","Calib_dac",0,rocs)
+            self.roc_param(f"Reference_Voltage_{half}","IntCtest",0,rocs)
+            self.roc_param(f"Channel_{ch}","HighRange",0,rocs)
         else:
-            self.roc_param("Reference_Voltage_0","Calib_dac",50,rocs)
-            self.roc_param("Reference_Voltage_0","IntCtest",1,rocs)
-            self.roc_param("Channel_0","HighRange",1,rocs)
+            self.roc_param(f"Reference_Voltage_{half}","Calib_dac",50,rocs)
+            self.roc_param(f"Reference_Voltage_{half}","IntCtest",1,rocs)
+            self.roc_param(f"Channel_{ch}","HighRange",1,rocs)
 
     def set_led(self,board=0,hdmi=0,sipm_bias=3784,led_bias=2500):
         self.bias_init(board)

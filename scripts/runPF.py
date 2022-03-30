@@ -5,10 +5,11 @@ def general_action(arg,c):
     c.set_general(board=arg.board,rocs=arg.rocs.split(','),config=arg.fconfig,l1a_offset=arg.offset)
 
 def charge_action(arg,c):
-    print('Enabling/Disabling charge injection',arg.off)
-    c.set_charge_injection(arg.rocs.split(','),off=arg.off)
-    print('Saving daq charge')
-    c.daq_charge(nevents=arg.nevents,output_name=f"{arg.odir}/{arg.nevents}.raw")
+    print(f'Enabling/Disabling charge injection for half {arg.half}',arg.coff)
+    c.set_charge_injection(arg.rocs.split(','),off=arg.coff,half=arg.half,ch=arg.channel)
+    if not arg.coff:
+        print('Saving daq charge')
+        c.daq_charge(nevents=arg.nevents,output_name=f"{arg.odir}/{arg.nevents}.raw")
 
 def relink_action(arg,c):
     print('Relink')
@@ -21,8 +22,18 @@ def vref_action(arg,c):
 
 def l1offset_action(arg,c):
     print('Scanning over L1Offset for Halfs 0 and 1 and rocs',arg.rocs.split(','))
-    c.roc_param("Digital_Half_0","L1Offset",arg.value,arg.rocs.split(','))
-    c.roc_param("Digital_Half_1","L1Offset",arg.value,arg.rocs.split(','))
+    values = arg.value.split(',')
+    print(values)
+    if len(values)==2:
+        if arg.step:
+            values = range(int(values[0]),int(values[1])+1,arg.step)
+        else:
+            values = range(int(values[0]),int(values[1])+1)
+    print(values)
+    for v in values:
+        c.roc_param("Digital_Half_0","L1Offset",int(v),arg.rocs.split(','))
+        c.roc_param("Digital_Half_1","L1Offset",int(v),arg.rocs.split(','))
+        c.daq_external(nevents=arg.nevents)
 
 def pedestal_action(arg,c):
     print('Getting pedestal data')
@@ -43,7 +54,7 @@ def bias_action(arg,c):
         hdmis = list(range(0,16))
     for hdmi in hdmis:
         c.set_bias(arg.board,int(hdmi),arg.sipm)
-
+        
 def pscan_action(arg,c):
     print('DAQ charge with phase scan')
     for phase in range(0,15):
@@ -76,7 +87,10 @@ if __name__=="__main__":
     parse_general.set_defaults(action=general_action)
 
     parse_charge = subparsers.add_parser('charge', help='Charge daq')
-    parse_charge.add_argument('--off',action='store_true',dest='off',help='Turn charge injection off')
+    parse_charge.add_argument('--coff',action='store_true',dest='coff',help='Turn charge injection off')
+    parse_charge.add_argument('--half',type=int,dest='half',default=0,help='Half')
+    parse_charge.add_argument('--ch',type=int,dest='channel',default=0,help='Channel')
+    parse_charge.add_argument('-o','--odir',dest='odir',type=str,default='.',help='output directory that contains raw data e.g. ./data/led/')
     parse_charge.set_defaults(action=charge_action)
 
     parse_relink = subparsers.add_parser('relink', help='Relink')
@@ -88,7 +102,8 @@ if __name__=="__main__":
     parse_vref.set_defaults(action=vref_action)
     
     parse_l1offset = subparsers.add_parser('l1offset', help='Change l1offset')
-    parse_l1offset.add_argument('--value',type=int,dest='value',default=0,help='Parameter value')
+    parse_l1offset.add_argument('--value',type=str,dest='value',default='0,1',help='Paremeter value or Range of parameter values split by commas')
+    parse_l1offset.add_argument('--step',type=int,dest='step',default=1,help='Step in range of parameter values')
     parse_l1offset.set_defaults(action=l1offset_action)
     
     parse_pedestal = subparsers.add_parser('pedestal', help='Pedestal run')
