@@ -140,8 +140,8 @@ class PFConfig :
     def daq_pedestal(self,nevents=100,output_name="100.raw"):
         self("DAQ","PEDESTAL",nevents,output_name,"QUIT")
         
-    def daq_charge(self,nevents=100,output_name="100.raw"):
-        self("DAQ","CHARGE",nevents,output_name,"QUIT")
+    def daq_charge(self,nevents=100,frequency=100,output_name="100.raw"):
+        self("DAQ","CHARGE",nevents,frequency,output_name,"QUIT")
 
     def daq_external(self,nevents=1000):
         self("DAQ","EXTERNAL")

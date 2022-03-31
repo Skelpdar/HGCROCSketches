@@ -44,16 +44,24 @@ def hardreset_action(arg,c):
     c.roc_resyncload(arg.rocs.split(','))
 
 def led_action(arg,c):
-    print('Setting LED pulse')
-    c.set_led(arg.board,arg.hdmi.split(','),arg.sipm,arg.led)
-
-def bias_action(arg,c):
-    print('Setting BIAS')
     hdmis = arg.hdmi.split(',')
     if hdmis=='-2':
         hdmis = list(range(0,16))
+    print('Setting LED pulse for hdmis ',hdmis)
+    for hdmi in hdmis:
+        c.set_led(arg.board,int(hdmi),arg.sipm,arg.led)
+
+def bias_action(arg,c):
+    hdmis = arg.hdmi.split(',')
+    if hdmis=='-2':
+        hdmis = list(range(0,16))
+    print('Setting BIAS for hdmis ',hdmis)
     for hdmi in hdmis:
         c.set_bias(arg.board,int(hdmi),arg.sipm)
+
+def l1aoffset_action(arg,c):
+    print('Setting L1A offset')
+    c.fc_calib(arg.offset)
         
 def pscan_action(arg,c):
     print('DAQ charge with phase scan')
@@ -67,7 +75,7 @@ def sscan_action(arg,c):
     for offset in offsetList:
         c.fc_calib(offset)
         for phase in range(0,15):
-            c.roc_param("top","phase",phase)
+            c.roc_param("top","phase",phase,arg.rocs.split('.'))
             c.daq_charge(nevents=arg.nevents,output_name=f"{output_dir}/{offset}_{phase}.raw")
             
 if __name__=="__main__":
@@ -112,13 +120,18 @@ if __name__=="__main__":
     parse_pedestal.set_defaults(action=pedestal_action)
 
     parse_led = subparsers.add_parser('led', help='LED pulse run')
+    parse_led.add_argument('--sipm',type=int,dest='sipm',default=3784,help='SiPM Bias')
+    parse_led.add_argument('--led',type=int,dest='led',default=0,help='LED Bias')
     parse_led.set_defaults(action=led_action)
     
     parse_bias = subparsers.add_parser('bias', help='Set LED or SiPM bias')
     parse_bias.add_argument('--sipm',type=int,dest='sipm',default=3784,help='SiPM Bias')
-    parse_bias.add_argument('--led',type=int,dest='led',default=0,help='LED Bias')
     parse_bias.set_defaults(action=bias_action)
-    
+
+    parse_l1aoffset = subparsers.add_parser('l1aoffset', help='Change l1aoffset in FC')
+    parse_l1aoffset.add_argument('--offset',type=int,dest='offset',default=17,help='L1A offset')
+    parse_l1aoffset.set_defaults(action=l1aoffset_action)
+
     parse_pscan = subparsers.add_parser('pscan', help='Pulse scan - changing phase')
     parse_pscan.add_argument('-o','--odir',dest='odir',type=str,default='./data/led/',help='output directory that contains raw data e.g. ./data/led/')
     parse_pscan.set_defaults(action=pscan_action)
