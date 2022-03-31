@@ -58,8 +58,8 @@ def bias_action(arg,c):
 def pscan_action(arg,c):
     print('DAQ charge with phase scan')
     for phase in range(0,15):
-        c.roc_param("top","phase",phase)
-        c.daq_charge(nevents=arg.nevents,output_name=f"{output_dir}/{phase}.raw")
+        c.roc_param("top","phase",phase,arg.rocs.split(','))
+        c.daq_charge(nevents=arg.nevents,output_name=f"{arg.odir}/{phase}.raw")
 
 def sscan_action(arg,c):
     print('DAQ charge with phase and L1A offset scan')
@@ -120,6 +120,7 @@ if __name__=="__main__":
     parse_bias.set_defaults(action=bias_action)
     
     parse_pscan = subparsers.add_parser('pscan', help='Pulse scan - changing phase')
+    parse_pscan.add_argument('-o','--odir',dest='odir',type=str,default='./data/led/',help='output directory that contains raw data e.g. ./data/led/')
     parse_pscan.set_defaults(action=pscan_action)
 
     parse_sscan = subparsers.add_parser('sscan', help='Super scan - changing phase and L1A offset')
