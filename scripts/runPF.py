@@ -2,7 +2,7 @@ import argparse
 
 def general_action(arg,c):
     print('Setting general commands')
-    c.set_general(board=arg.board,rocs=arg.rocs.split(','),config=arg.fconfig,l1a_offset=arg.offset)
+    c.set_general(rocs=arg.rocs.split(','),config=arg.fconfig,l1a_offset=arg.offset)
 
 def charge_action(arg,c):
     print(f'Enabling/Disabling charge injection for half {arg.half}',arg.coff)
@@ -45,16 +45,12 @@ def hardreset_action(arg,c):
 
 def led_action(arg,c):
     hdmis = arg.hdmi.split(',')
-    if hdmis=='-2':
-        hdmis = list(range(0,16))
     print('Setting LED pulse for hdmis ',hdmis)
     for hdmi in hdmis:
-        c.set_led(arg.board,int(hdmi),arg.sipm,arg.led)
+        c.set_led(arg.rocs.split(','),int(hdmi),arg.sipm,arg.led)
 
 def bias_action(arg,c):
     hdmis = arg.hdmi.split(',')
-    if hdmis=='-2':
-        hdmis = list(range(0,16))
     print('Setting BIAS for hdmis ',hdmis)
     for hdmi in hdmis:
         c.set_bias(arg.board,int(hdmi),arg.sipm)
@@ -62,7 +58,11 @@ def bias_action(arg,c):
 def l1aoffset_action(arg,c):
     print('Setting L1A offset')
     c.fc_calib(arg.offset)
-        
+
+def multisample_action(arg,c):
+    print('Setting multisamples')
+    c.fc_multisample(arg.value)
+    
 def pscan_action(arg,c):
     print('DAQ charge with phase scan')
     for phase in range(0,15):
@@ -83,7 +83,6 @@ if __name__=="__main__":
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--run',       action='store_true', dest='run',                 help='Run')
     parser.add_argument('--dpm',       type=int,            dest='dpm',    default=1,   help='DPM')
-    parser.add_argument('--board','-b',type=int,            dest='board',  default=0,   help='Board ID')
     parser.add_argument('--rocs',      type=str,            dest='rocs',   default='0', help='ROCs (separated by commas)')
     parser.add_argument('--hdmi',      type=str,            dest='hdmi',   default='0', help='HDMI connectors (separated by commas). Use -2 to run all connectors.')
     parser.add_argument('--nevents',   type=int,            dest='nevents',default=100, help='Number of events')
@@ -132,6 +131,10 @@ if __name__=="__main__":
     parse_l1aoffset.add_argument('--offset',type=int,dest='offset',default=17,help='L1A offset')
     parse_l1aoffset.set_defaults(action=l1aoffset_action)
 
+    parse_multisample = subparsers.add_parser('multisample', help='Change multisamples in FC')
+    parse_multisample.add_argument('--value',type=int,dest='value',default=3,help='Multisample value')
+    parse_multisample.set_defaults(action=multisample_action)
+
     parse_pscan = subparsers.add_parser('pscan', help='Pulse scan - changing phase')
     parse_pscan.add_argument('-o','--odir',dest='odir',type=str,default='./data/led/',help='output directory that contains raw data e.g. ./data/led/')
     parse_pscan.set_defaults(action=pscan_action)
@@ -149,5 +152,6 @@ if __name__=="__main__":
     import pfconfig
     with pfconfig.connect(f"cob1-dpm{arg.dpm}") as c:
         arg.action(arg,c)
-        #c.("EXIT")
+        if arg.dexit:
+            c.write_exit()
         c.run(arg.run)
