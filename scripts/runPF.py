@@ -149,6 +149,7 @@ if __name__=="__main__":
     if 'action' not in arg :
         parser.error('Must choose an action to perform!')
 
+
     import pfconfig
     with pfconfig.connect(f"cob1-dpm{arg.dpm}") as c:
         arg.action(arg,c)
