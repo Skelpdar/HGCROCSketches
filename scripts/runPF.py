@@ -82,9 +82,10 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(f'python runPF.py ',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--run',       action='store_true', dest='run',                 help='Run')
+    parser.add_argument('--exit',      action='store_true', dest='dexit',               help='Exit')
     parser.add_argument('--dpm',       type=int,            dest='dpm',    default=1,   help='DPM')
     parser.add_argument('--rocs',      type=str,            dest='rocs',   default='0', help='ROCs (separated by commas)')
-    parser.add_argument('--hdmi',      type=str,            dest='hdmi',   default='0', help='HDMI connectors (separated by commas). Use -2 to run all connectors.')
+    parser.add_argument('--hdmi',      type=str,            dest='hdmi',   default='0', help='HDMI connectors (separated by commas). Use -1 to run all connectors.')
     parser.add_argument('--nevents',   type=int,            dest='nevents',default=100, help='Number of events')
     subparsers = parser.add_subparsers(help='Choose which action to perform.')
 
@@ -119,12 +120,12 @@ if __name__=="__main__":
     parse_pedestal.set_defaults(action=pedestal_action)
 
     parse_led = subparsers.add_parser('led', help='LED pulse run')
-    parse_led.add_argument('--sipm',type=int,dest='sipm',default=3784,help='SiPM Bias')
+    parse_led.add_argument('--sipm',type=int,dest='sipm',default=3600,help='SiPM Bias') # We should use 3784, I set 3600 to be on the safe side
     parse_led.add_argument('--led',type=int,dest='led',default=0,help='LED Bias')
     parse_led.set_defaults(action=led_action)
     
     parse_bias = subparsers.add_parser('bias', help='Set LED or SiPM bias')
-    parse_bias.add_argument('--sipm',type=int,dest='sipm',default=3784,help='SiPM Bias')
+    parse_bias.add_argument('--sipm',type=int,dest='sipm',default=3600,help='SiPM Bias') # We should use 3784, I set 3600 to be on the safe side
     parse_bias.set_defaults(action=bias_action)
 
     parse_l1aoffset = subparsers.add_parser('l1aoffset', help='Change l1aoffset in FC')
@@ -153,6 +154,6 @@ if __name__=="__main__":
     import pfconfig
     with pfconfig.connect(f"cob1-dpm{arg.dpm}") as c:
         arg.action(arg,c)
-        if arg.exit:
+        if arg.dexit:
             c.write_exit()
         c.run(arg.run)

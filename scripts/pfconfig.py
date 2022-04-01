@@ -133,8 +133,8 @@ class PFConfig :
     def daq_reset(self):
         self("DAQ","HARD_RESET","QUIT")
 
-    def daq_pedestal(self,nevents=100,output_name="100.raw"):
-        self("DAQ","PEDESTAL",nevents,output_name,"QUIT")
+    def daq_pedestal(self,nevents=100,frequency=100,output_name="100.raw"):
+        self("DAQ","PEDESTAL","1",nevents,frequency,output_name,"QUIT")
         
     def daq_charge(self,nevents=100,frequency=100,output_name="100.raw"):
         # self("DAQ","CHARGE",nevents,frequency,output_name,"QUIT")
@@ -179,12 +179,12 @@ class PFConfig :
             self.roc_param(f"Reference_Voltage_{half}","IntCtest",1,rocs)
             self.roc_param(f"Channel_{ch}","HighRange",1,rocs)
 
-    def set_led(self,rocs=[0],hdmi=0,sipm_bias=3784,led_bias=2500):
+    def set_led(self,rocs=[0],hdmi=0,sipm_bias=3600,led_bias=2500): # We should use 3784, I set 3600 to be on the safe side
         self.bias_init(rocs)
         self.bias_set(rocs,hdmi,0,sipm_bias)
         self.bias_set(rocs,hdmi,1,led_bias)
 
-    def set_bias(self,rocs=[0],hdmi=0,sipm_bias=3784):
+    def set_bias(self,rocs=[0],hdmi=0,sipm_bias=3600): # We should use 3784, I set 3600 to be on the safe side
         self.bias_init(rocs)
         self.bias_set(rocs,hdmi,0,sipm_bias)        
 
