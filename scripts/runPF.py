@@ -7,9 +7,9 @@ def general_action(arg,c):
 def charge_action(arg,c):
     print(f'Enabling/Disabling charge injection for half {arg.half}',arg.coff)
     c.set_charge_injection(arg.rocs.split(','),off=arg.coff,half=arg.half,ch=arg.channel)
-    if not arg.coff:
-        print('Saving daq charge')
-        c.daq_charge(nevents=arg.nevents,output_name=f"{arg.odir}/{arg.nevents}.raw")
+    #if not arg.coff:
+    #    print('Saving daq charge')
+    #    c.daq_charge(nevents=arg.nevents,output_name=f"{arg.odir}/{arg.nevents}.raw")
 
 def relink_action(arg,c):
     print('Relink')
