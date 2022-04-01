@@ -1,0 +1,10 @@
+8 Gev pions
+
+charge injection wiht statistics, vary the dac. Then led flashing
+
+Charge injection och LED på samma kanal och smama dynamic range
+
+dacb = 0
+lower led
+run again
+
