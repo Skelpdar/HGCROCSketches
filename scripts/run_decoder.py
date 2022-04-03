@@ -15,12 +15,12 @@ run_by_offset = dict(zip(runs, values))
 
 umn_path = "/u1/ldmx/diskless/minnesotaDPM/home/ldmx/data/"
 odir = "data/march30/l1scan/"
-os.system(f'mkdir -p {odir}')
+#os.system(f'mkdir -p {odir}')
 for half in range(0,2):
     for run,value in run_by_offset.items():
         files = glob.glob(umn_path+"/run000{:03d}*".format(run))
         for ifile in files:
             cmd = f'/home/ldmx/pflib/pflib_jm/pfdecoder -r {half} -a {ifile} | tee {odir}/{value}_{half}.txt'
-            #print(cmd)
-            os.system(cmd)
+            print(cmd)
+            #os.system(cmd)
 

@@ -5,6 +5,9 @@ import sys
 import glob
 
 
+#runs = list(range(49,78))
+#values = list(range(8,124,4))
+
 def read():
 
     listOfFiles = glob.glob(f"../data/l1scan/*.txt")
