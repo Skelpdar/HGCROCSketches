@@ -15,7 +15,7 @@ def read():
 
     for currentFile in listOfFiles:
         half=int(currentFile.split(".")[2].split("/")[3].split("_")[1])
-        if half != 0:
+        if half != 1:
             continue
         offset = int(currentFile.split(".")[2].split("/")[3].split("_")[0])
         with open(currentFile) as f:
@@ -54,16 +54,21 @@ def read():
     df=df.sort_values(by=['x'])
     df.to_pickle("df.pickle")
 
-#    # another big one
-#    df_sample = pd.DataFrame(sampleDict)
-#    df_sample = df_sample.sort_values(by=['xx'])
+    # another big one
+    df_sample = pd.DataFrame(sampleDict)
+    df_sample = df_sample.sort_values(by=['xx'])
+    df_sample.to_pickle("df_sample.pickle")
+
 
 def plot():
-    df = pd.read_pickle("df.pickle")  
+    df = pd.read_pickle("df.pickle")
+    pedestalDict = {}
+    
     f, ax = plt.subplots(figsize=(25*(1/2.54), 13.875*(1/2.54)))
     for channel in range(0,37):
         df_small = df.loc[df["channel"]==channel]
         pedestal=np.mean(df_small["y"][:4])
+        pedestalDict[str(channel)]=pedestal
         
         ax.errorbar(df_small["x"], df_small["y"]-pedestal,
                     yerr=df_small["y_error"], xerr=df_small["x_error"],
@@ -82,6 +87,54 @@ def plot():
     leg1.set_title("DPM/Board/HCROC/HALF : 0/0/0/0\nSiPM Bias = 43.5 V")
     ax.grid(True)
     plt.savefig("./mean_per_channel.pdf")
+    
+#######################
+
+    x=[]
+    y=[]
+    
+    #df = pd.read_pickle("df_sample.pickle")
+    df = pd.read_pickle("df.pickle")
+    
+    for index, row in df.iterrows():
+        channel = str(int(row['channel']))
+        diff = row['y']-pedestalDict[channel]
+        if diff < 1:
+            continue
+        else:
+            x.append(row['x'])
+            y.append(row['y']-pedestalDict[channel])
+    
+
+    #df_sample = pd.read_pickle("df_sample.pickle")
+    #x=np.array(df_sample["x"])
+    #y=np.array(df_sample["y"])
+    #print(y)
+    
+    x=np.array(x)
+    y=np.array(y)
+    
+    x_min = 0
+    x_max = 4000
+      
+    y_min = -2
+    y_max = 25
+      
+    x_bins = np.linspace(x_min, x_max, 161)
+    y_bins = np.linspace(y_min, y_max, 28)
+      
+    fig, ax = plt.subplots(figsize =(10, 7))
+    # Creating plot
+    plt.hist2d(x, y, bins =[x_bins, y_bins])
+    plt.title("L1 Offset Scan, Pedestal Subtraction > 1 ADC")
+      
+    ax.set_xlabel('L1 Offset [ns]') 
+    ax.set_ylabel('ADC Count') 
+      
+    # show plot
+    plt.tight_layout()
+    plt.savefig("./2D.pdf")
+    #plt.show()
 
 #    f, ax = plt.subplots(figsize=(25*(1/2.54), 13.875*(1/2.54)))
 #    for channel in range(0,37):
