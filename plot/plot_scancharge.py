@@ -90,7 +90,7 @@ def plot_calibdac_amplitude(data,dpm=1,odir='./'):
                 ax[i].set_title(f'Link {link} Channel {ch+i}')
             fig.tight_layout()
             fig.suptitle(f"CALIB DAC Scan Link {link} DPM {dpm}")
-        pp.savefig(fig)
+            pp.savefig(fig)
         pp.close()
 
 def main(arg):
