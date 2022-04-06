@@ -10,7 +10,9 @@ import glob
 
 def read():
 
-    listOfFiles = glob.glob(f"../data/l1scan/*.txt")
+    #listOfFiles = glob.glob(f"../data/l1scan/*.txt")
+    #listOfFiles = glob.glob(f"../data/electrons/*.txt")
+    listOfFiles = glob.glob(f"../data/pions/*.txt")
     #listOfFiles = glob.glob(f"../data/l1scan_80to90/*.txt")
     nsamples = 4
     theDict = {'x':[], 'x_error':[], 'y':[], 'y_error':[],'offset':[],'channel':[]}
@@ -18,9 +20,11 @@ def read():
 
     for currentFile in listOfFiles:
         half=int(currentFile.split(".")[2].split("/")[3].split("_")[1])
-        if half != 1:
+        #half = 0
+        if half != 0:
             continue
         offset = int(currentFile.split(".")[2].split("/")[3].split("_")[0])
+        #offset = 84
         with open(currentFile) as f:
             data = f.readlines()
             
@@ -71,9 +75,10 @@ def plot():
     for channel in range(0,37):
         df_small = df.loc[df["channel"]==channel]
         pedestal=np.mean(df_small["y"][:4])
+        
         pedestalDict[str(channel)]=pedestal
         
-        ax.errorbar(df_small["x"], df_small["y"]-pedestal,
+        ax.errorbar(df_small["x"], df_small["y"],
                     yerr=df_small["y_error"], xerr=df_small["x_error"],
                     linestyle='None',
                     marker="o",
@@ -89,7 +94,7 @@ def plot():
     leg1._legend_box.align = "left"
     leg1.set_title("DPM/Board/HCROC/HALF : 0/0/0/0\nSiPM Bias = 43.5 V")
     ax.grid(True)
-    plt.savefig("./mean_per_channel.pdf")
+    plt.savefig("../data/pions/mean_per_channel.pdf")
     
 #######################
 
@@ -128,15 +133,15 @@ def plot():
       
     fig, ax = plt.subplots(figsize =(10, 7))
     # Creating plot
-    plt.hist2d(x, y, bins =[x_bins, y_bins])
-    plt.title("L1 Offset Scan, Pedestal Subtraction > 1 ADC")
+    plt.hist2d(x, y, bins =[x_bins, y_bins])#, cmap='prism')
+    #plt.title("L1 Offset Scan, Pedestal Subtraction > 1 ADC")
       
     ax.set_xlabel('L1 Offset [ns]') 
-    ax.set_ylabel('ADC Count') 
+    ax.set_ylabel('ADC Count (Mean over 4 samples per event)') 
       
     # show plot
     plt.tight_layout()
-    plt.savefig("./2D.pdf")
+    plt.savefig("../data/pions/2D.pdf")
     #plt.show()
 
 #    f, ax = plt.subplots(figsize=(25*(1/2.54), 13.875*(1/2.54)))

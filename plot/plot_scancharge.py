@@ -11,6 +11,7 @@ def plot_pulse(fname,data,dpm=1,odir='./'):
     links = list(data["ILINK"].unique())
     #calib_dacs = [min(list(data['CALIB_DAC'].unique())),max(list(data['CALIB_DAC'].unique()))]
     calib_dacs = list(data['CALIB_DAC'].unique())
+    print(calib_dacs)
 
     #fig, axs = plt.subplots(len(links), len(calib_dacs), figsize=(8.27, 11.69), dpi=100)
 
@@ -56,7 +57,7 @@ def plot_pulse(fname,data,dpm=1,odir='./'):
             H = H.T
 
             print(ilink_counter,calib_dac_counter)
-            c = axs[ilink_counter][calib_dac_counter].pcolormesh(X, Y, H, vmin=0, vmax=200)
+            c = axs[ilink_counter][calib_dac_counter].pcolormesh(X, Y, H, vmin=0, vmax=600)
             axs[ilink_counter][calib_dac_counter].xaxis.set_ticks([0,1,2,3,4,5,6,7,8])
             axs[ilink_counter][calib_dac_counter].yaxis.set_ticks([0,18,36])
             

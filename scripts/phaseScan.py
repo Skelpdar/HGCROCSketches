@@ -44,11 +44,11 @@ def main():
 #        "./data/lowrange_dac1000_1k/":{"legend":"Lowrange DAC = 1000","color":"grey"},
 #        "./data/led_dpm1_pscan/":{"legend":"LED = 1750 DAC","color":"black"},#LED
 
-        "./data/dpm1_charge/":{"legend":"LED = 1750 DAC","color":"red"}, #CHARGE
-        "./data/dpm1_charge2/":{"legend":"LED = 1750 DAC","color":"red"}, #CHARGE
-        "./data/dpm1_charge3/":{"legend":"LED = 1750 DAC","color":"red"}, #CHARGE
-        "./data/dpm1_charge4/":{"legend":"LED = 1750 DAC","color":"blue"},
-        "./data/dpm0_charge5/":{"legend":"Charge Injection","color":"black"},
+#        "./data/dpm1_charge/":{"legend":"LED = 1750 DAC","color":"red"}, #CHARGE
+#        "./data/dpm1_charge2/":{"legend":"LED = 1750 DAC","color":"red"}, #CHARGE
+#        "./data/dpm1_charge3/":{"legend":"LED = 1750 DAC","color":"red"}, #CHARGE
+#        "./data/dpm1_charge4/":{"legend":"LED = 1750 DAC","color":"blue"},
+#        "./data/dpm0_charge5/":{"legend":"Charge Injection","color":"black"},
 
 #        "./data/dpm0_led1/":{"legend":"LED 1","color":"red"},
 #        "./data/dpm0_led2/":{"legend":"LED 2","color":"green"},
@@ -63,8 +63,9 @@ def main():
 #        "./data/dpm1_ch0_LED2500/led/":{"legend":"led","color":"red"},
 #        "./data/dpm1_ch0_LED1700/charge/":{"legend":"charge","color":"black"},
 #        "./data/dpm1_ch0_LED1700/led/":{"legend":"led","color":"red"},
-        "./data/dpm1_ch0_dacb0_SiPM_3784_LED_1000/charge/":{"legend":"charge","color":"black"},
+#        "./data/dpm1_ch0_dacb0_SiPM_3784_LED_1000/charge/":{"legend":"charge","color":"black"},
 #        "./data/dpm1_ch0_dacb0_SiPM_3784_LED_1000/led/":{"legend":"led","color":"red"},
+        "../data/phaseScan/scan_PHASE_20220405_154131.csv"
     }
 
     f, ax = plt.subplots(figsize=(25*(1/2.54), 13.875*(1/2.54)))
@@ -124,7 +125,7 @@ def main():
     
     ax.grid(True)
     
-    plt.savefig("./dpm1_ch0_dacb0_SiPM_3784_LED_1000.pdf")
+    plt.savefig("./scan_PHASE_20220405_154131.pdf")
 
 if __name__ == "__main__":
     main()
